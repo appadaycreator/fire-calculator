@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIRE計算機 - 早期リタイア達成シミュレーター</title>
+    <meta name="description" content="あなたのFIRE（早期リタイア）達成年齢を無料で計算。4%ルールに基づく必要資産額、積立プラン、モンテカルロシミュレーションで将来を可視化。">
+    
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TXQGZRF9');</script>
+    <!-- End Google Tag Manager -->
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* ヘッダー */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        /* メインコンテンツ */
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* プログレスバー */
+        .progress-container {
+            margin-bottom: 40px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: #4caf50;
+            color: white;
+        }
+        
+        /* フォーム */
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #777;
+            font-size: 0.9em;
+        }
+        
+        /* ボタン */
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 結果セクション */
+        .result-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .result-card h2 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .result-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .result-item h3 {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+        
+        .result-item p {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        /* グラフ */
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        #assetChart {
+            max-width: 100%;
+            height: 400px;
+        }
+        
+        /* シェアセクション */
+        .share-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .share-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .share-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .share-twitter {
+            background: #1DA1F2;
+        }
+        
+        .share-facebook {
+            background: #4267B2;
+        }
+        
+        .share-line {
+            background: #00B900;
+        }
+        
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* アフィリエイトセクション */
+        .affiliate-section {
+            background: #fff5e6;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .affiliate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .affiliate-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .affiliate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .affiliate-card h4 {
+            color: #ff6b00;
+            margin-bottom: 10px;
+        }
+        
+        .affiliate-card a {
+            color: #ff6b00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        /* ユーティリティ */
+        .hidden {
+            display: none !important;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .main-card {
+                padding: 20px;
+            }
+            
+            .steps {
+                gap: 10px;
+            }
+            
+            .step span {
+                display: none;
+            }
+            
+            .result-card h2 {
+                font-size: 2em;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+        
+        /* アニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TXQGZRF9"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header animate-fadeIn">
+            <h1>🔥 FIRE計算機</h1>
+            <p>早期リタイア達成シミュレーター - あなたの経済的自立への道のりを可視化</p>
+        </div>
+        
+        <!-- メインカード -->
+        <div class="main-card animate-fadeIn">
+            <!-- プログレスバー -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 33.33%;"></div>
+                </div>
+                <div class="steps">
+                    <div class="step active" onclick="setStep(0)">
+                        <div class="step-number">1</div>
+                        <span>基本情報</span>
+                    </div>
+                    <div class="step" onclick="setStep(1)">
+                        <div class="step-number">2</div>
+                        <span>収支情報</span>
+                    </div>
+                    <div class="step" onclick="setStep(2)">
+                        <div class="step-number">3</div>
+                        <span>FIRE目標</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- フォームセクション -->
+            <div class="form-section">
+                <!-- ステップ1: 基本情報 -->
+                <div id="step1" class="form-grid">
+                    <div class="form-group">
+                        <label for="currentAge">現在の年齢</label>
+                        <input type="number" id="currentAge" value="30" min="20" max="70">
+                        <small>20歳〜70歳の範囲で入力</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="currentSavings">現在の貯蓄額（万円）</label>
+                        <input type="number" id="currentSavings" value="500" min="0" max="100000">
+                        <small>投資資産を含む総資産</small>
+                    </div>
+                </div>
+                
+                <!-- ステップ2: 収支情報 -->
+                <div id="step2" class="form-grid hidden">
+                    <div class="form-group">
+                        <label for="annualIncome">年収（万円）</label>
+                        <input type="number" id="annualIncome" value="500" min="0" max="10000">
+                        <small>税引き前の年収</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="annualExpense">年間支出（万円）</label>
+                        <input type="number" id="annualExpense" value="300" min="0" max="10000">
+                        <small>生活費・固定費を含む</small>
+                    </div>
+                </div>
+                
+                <!-- ステップ3: FIRE目標 -->
+                <div id="step3" class="form-grid hidden">
+                    <div class="form-group">
+                        <label for="targetExpense">リタイア後の年間生活費（万円）</label>
+                        <input type="number" id="targetExpense" value="240" min="0" max="10000">
+                        <small>FIRE後の生活費</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="expectedReturn">想定利回り（%）</label>
+                        <input type="number" id="expectedReturn" value="5" min="0" max="20" step="0.1">
+                        <small>投資の年間期待収益率</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="inflationRate">想定インフレ率（%）</label>
+                        <input type="number" id="inflationRate" value="2" min="0" max="10" step="0.1">
+                        <small>年間の物価上昇率</small>
+                    </div>
+                </div>
+                
+                <!-- ボタン -->
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="prevBtn" onclick="prevStep()" disabled>前へ</button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">次へ</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 結果セクション -->
+        <div id="results" class="hidden">
+            <!-- メイン結果 -->
+            <div class="result-card animate-fadeIn">
+                <h2>🎉 <span id="fireAge">-</span>歳でFIRE達成！</h2>
+                <p>あと<span id="yearsToFire">-</span>年で経済的自立を実現</p>
+                
+                <div class="result-grid">
+                    <div class="result-item">
+                        <h3>必要資産額</h3>
+                        <p><span id="requiredAmount">-</span>万円</p>
+                    </div>
+                    <div class="result-item">
+                        <h3>毎月の積立額</h3>
+                        <p><span id="monthlySaving">-</span>万円</p>
+                    </div>
+                    <div class="result-item">
+                        <h3>成功確率</h3>
+                        <p><span id="successRate">-</span>%</p>
+                    </div>
+                    <div class="result-item">
+                        <h3>総貯蓄額</h3>
+                        <p><span id="totalSaved">-</span>万円</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- グラフ -->
+            <div class="chart-container animate-fadeIn">
+                <h3>資産推移シミュレーション</h3>
+                <canvas id="assetChart"></canvas>
+            </div>
+            
+            <!-- シェアセクション -->
+            <div class="share-section animate-fadeIn">
+                <h3>📢 結果をシェアして友達と比較しよう！</h3>
+                <div class="share-buttons">
+                    <a href="#" class="share-btn share-twitter" id="shareTwitter" target="_blank">
+                        <span>X</span>でシェア
+                    </a>
+                    <a href="#" class="share-btn share-facebook" id="shareFacebook" target="_blank">
+                        <span>f</span> Facebookでシェア
+                    </a>
+                    <a href="#" class="share-btn share-line" id="shareLine" target="_blank">
+                        <span>L</span> LINEでシェア
+                    </a>
+                </div>
+            </div>
+            
+            <!-- アフィリエイトセクション -->
+            <div class="affiliate-section animate-fadeIn">
+                <h3>🚀 FIRE達成を加速させる投資サービス</h3>
+                <p>資産形成に役立つおすすめサービスをご紹介します</p>
+                <div class="affiliate-grid">
+                    <div class="affiliate-card">
+                        <h4>つみたてNISA</h4>
+                        <p>税制優遇を活用した長期投資</p>
+                        <a href="#" target="_blank" rel="nofollow">詳細を見る →</a>
+                    </div>
+                    <div class="affiliate-card">
+                        <h4>iDeCo</h4>
+                        <p>節税しながら老後資金形成</p>
+                        <a href="#" target="_blank" rel="nofollow">詳細を見る →</a>
+                    </div>
+                    <div class="affiliate-card">
+                        <h4>投資信託</h4>
+                        <p>プロに任せる分散投資</p>
+                        <a href="#" target="_blank" rel="nofollow">詳細を見る →</a>
+                    </div>
+                    <div class="affiliate-card">
+                        <h4>不動産投資</h4>
+                        <p>安定収入で資産形成</p>
+                        <a href="#" target="_blank" rel="nofollow">詳細を見る →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <script>
+        // グローバル変数
+        let currentStep = 0;
+        let chart = null;
+        let calculationHistory = [];
+        
+        // localStorage対策
+        const storage = {
+            getItem: function(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn('localStorage is not available');
+                    return null;
+                }
+            },
+            setItem: function(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn('localStorage is not available');
+                }
+            }
+        };
+        
+        // ステップ管理
+        function setStep(step) {
+            currentStep = step;
+            updateUI();
+        }
+        
+        function nextStep() {
+            if (currentStep < 2) {
+                currentStep++;
+                updateUI();
+            } else {
+                calculateFIRE();
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateUI();
+            }
+        }
+        
+        function updateUI() {
+            // プログレスバー更新
+            const progress = ((currentStep + 1) / 3) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            // ステップ表示切り替え
+            for (let i = 0; i < 3; i++) {
+                const stepElement = document.querySelectorAll('.step')[i];
+                const formElement = document.getElementById('step' + (i + 1));
+                
+                if (i === currentStep) {
+                    stepElement.classList.add('active');
+                    formElement.classList.remove('hidden');
+                } else {
+                    stepElement.classList.remove('active');
+                    formElement.classList.add('hidden');
+                }
+                
+                if (i < currentStep) {
+                    stepElement.classList.add('completed');
+                } else {
+                    stepElement.classList.remove('completed');
+                }
+            }
+            
+            // ボタン状態更新
+            document.getElementById('prevBtn').disabled = currentStep === 0;
+            
+            if (currentStep === 2) {
+                document.getElementById('nextBtn').textContent = 'FIRE年齢を計算';
+                document.getElementById('nextBtn').style.background = 'linear-gradient(135deg, #f093fb, #f5576c)';
+            } else {
+                document.getElementById('nextBtn').textContent = '次へ';
+                document.getElementById('nextBtn').style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+        }
+        
+        // FIRE計算
+        function calculateFIRE() {
+            // 入力値取得
+            const currentAge = parseInt(document.getElementById('currentAge').value);
+            const annualIncome = parseInt(document.getElementById('annualIncome').value);
+            const annualExpense = parseInt(document.getElementById('annualExpense').value);
+            const currentSavings = parseInt(document.getElementById('currentSavings').value);
+            const targetExpense = parseInt(document.getElementById('targetExpense').value);
+            const expectedReturn = parseFloat(document.getElementById('expectedReturn').value) / 100;
+            const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100;
+            
+            // 実質利回り
+            const realReturn = expectedReturn - inflationRate;
+            
+            // 4%ルールに基づく必要資産額
+            const requiredAmount = targetExpense * 25;
+            
+            // 年間貯蓄額
+            const annualSaving = annualIncome - annualExpense;
+            const monthlySaving = annualSaving / 12;
+            
+            // FIRE達成までの年数を計算
+            let assets = currentSavings;
+            let years = 0;
+            const assetHistory = [{year: 0, assets: assets}];
+            
+            while (assets < requiredAmount && years < 50) {
+                years++;
+                assets = assets * (1 + realReturn) + annualSaving;
+                assetHistory.push({
+                    year: years,
+                    assets: Math.round(assets),
+                    nominalAssets: Math.round(assets * Math.pow(1 + inflationRate, years))
+                });
+            }
+            
+            // 成功確率計算（簡易版）
+            const successRate = calculateSuccessRate(currentSavings, annualSaving, realReturn, requiredAmount);
+            
+            // 結果表示
+            const fireAge = currentAge + years;
+            const totalSaved = annualSaving * years;
+            
+            document.getElementById('fireAge').textContent = fireAge;
+            document.getElementById('yearsToFire').textContent = years;
+            document.getElementById('requiredAmount').textContent = requiredAmount.toLocaleString();
+            document.getElementById('monthlySaving').textContent = Math.round(monthlySaving * 10) / 10;
+            document.getElementById('successRate').textContent = successRate;
+            document.getElementById('totalSaved').textContent = Math.round(totalSaved).toLocaleString();
+            
+            // グラフ描画
+            drawChart(assetHistory, currentAge);
+            
+            // シェアボタン更新
+            updateShareButtons(fireAge, requiredAmount);
+            
+            // 履歴保存
+            saveToHistory({
+                date: new Date().toLocaleString(),
+                fireAge,
+                requiredAmount,
+                years,
+                currentAge
+            });
+            
+            // 結果表示
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 成功確率計算
+        function calculateSuccessRate(initialAmount, annualSaving, expectedReturn, targetAmount) {
+            const simulations = 100;
+            let successes = 0;
+            
+            for (let i = 0; i < simulations; i++) {
+                let assets = initialAmount;
+                let years = 0;
+                
+                while (assets < targetAmount && years < 50) {
+                    years++;
+                    const randomReturn = expectedReturn + (Math.random() - 0.5) * 0.2;
+                    assets = assets * (1 + randomReturn) + annualSaving;
+                }
+                
+                if (years < 50) successes++;
+            }
+            
+            return Math.round((successes / simulations) * 100);
+        }
+        
+        // グラフ描画
+        function drawChart(assetHistory, currentAge) {
+            const ctx = document.getElementById('assetChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            const labels = assetHistory.map(item => (currentAge + item.year) + '歳');
+            const realAssets = assetHistory.map(item => item.assets);
+            const nominalAssets = assetHistory.map(item => item.nominalAssets || item.assets);
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '実質資産（インフレ調整後）',
+                        data: realAssets,
+                        borderColor: 'rgb(102, 126, 234)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: '名目資産',
+                        data: nominalAssets,
+                        borderColor: 'rgb(236, 72, 153)',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + '万円';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + '万円';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // シェアボタン更新
+        function updateShareButtons(fireAge, requiredAmount) {
+            const shareText = `私のFIRE達成予想年齢は${fireAge}歳！必要資産額は${requiredAmount.toLocaleString()}万円です。あなたは何歳でFIREできる？`;
+            const url = 'https://appadaycreator.github.io/fire-calculator';
+            
+            document.getElementById('shareTwitter').href = 
+                `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText + '\n\n#継続は力なり #FIRE #早期リタイア #資産形成')}&url=${encodeURIComponent(url)}`;
+            
+            document.getElementById('shareFacebook').href = 
+                `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(shareText)}`;
+            
+            document.getElementById('shareLine').href = 
+                `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText)}`;
+        }
+        
+        // 履歴保存
+        function saveToHistory(data) {
+            calculationHistory.unshift(data);
+            if (calculationHistory.length > 10) {
+                calculationHistory = calculationHistory.slice(0, 10);
+            }
+            storage.setItem('fireHistory', JSON.stringify(calculationHistory));
+        }
+        
+        // 初期化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 履歴読み込み
+            const saved = storage.getItem('fireHistory');
+            if (saved) {
+                try {
+                    calculationHistory = JSON.parse(saved);
+                } catch (e) {
+                    console.warn('Failed to parse history');
+                }
+            }
+            
+            // UI初期化
+            updateUI();
+        });
+    </script>
+</body>
+</html>

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="manifest" href="manifest-json.json">
+    <meta name="theme-color" content="#667eea">
     <title>FIRE計算機 - 早期リタイア達成シミュレーター</title>
     <meta name="description" content="あなたのFIRE（早期リタイア）達成年齢を無料で計算。4%ルールに基づく必要資産額、積立プラン、モンテカルロシミュレーションで将来を可視化。">
     
@@ -419,6 +421,19 @@
             animation: fadeIn 0.5s ease-out;
         }
     </style>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
 </head>
 <body>
     <!-- Google Tag Manager (noscript) -->

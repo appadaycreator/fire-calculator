@@ -1,0 +1,27 @@
+{
+  "name": "FIRE計算機 - 早期リタイア達成シミュレーター",
+  "short_name": "FIRE計算機",
+  "description": "あなたのFIRE達成年齢を無料で計算。インフレ対応・成功確率付きの高精度シミュレーション。",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "lang": "ja",
+  "dir": "ltr"
+}

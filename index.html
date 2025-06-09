@@ -420,6 +420,28 @@
         .animate-fadeIn {
             animation: fadeIn 0.5s ease-out;
         }
+
+        /* 免責事項 */
+        .disclaimer {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .disclaimer h2 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .disclaimer p {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
     </style>
     <script>
         if ('serviceWorker' in navigator) {
@@ -529,7 +551,7 @@
         </div>
         
         <!-- 結果セクション -->
-        <div id="results" class="hidden">
+        <div id="results" class="main-card hidden">
             <!-- メイン結果 -->
             <div class="result-card animate-fadeIn">
                 <h2>🎉 <span id="fireAge">-</span>歳でFIRE達成！</h2>
@@ -605,6 +627,15 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- 免責事項 -->
+        <div class="disclaimer">
+            <h2>免責事項</h2>
+            <p>本計算機は、一般的な情報提供を目的としており、投資助言や投資勧誘を目的とするものではありません。計算結果は参考値であり、実際の投資成果を保証するものではありません。</p>
+            <p>投資にはリスクが伴います。過去の実績は将来の成果を保証するものではありません。投資判断は自己責任で行ってください。</p>
+            <p>本計算機で使用している計算方法や前提条件は、実際の市場環境や個人の状況によって異なる場合があります。具体的な投資判断については、専門家に相談することをお勧めします。</p>
+            <p>本サイトの利用により生じたいかなる損害についても、当方は一切の責任を負いません。</p>
         </div>
     </div>
     

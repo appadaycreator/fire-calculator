@@ -268,11 +268,16 @@
         
         /* グラフ */
         .chart-container {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
         }
         
         #assetChart {
@@ -594,8 +599,7 @@
             </div>
             
             <!-- グラフ -->
-            <div class="chart-container animate-fadeIn">
-                <h3>資産推移シミュレーション</h3>
+            <div class="chart-container">
                 <canvas id="assetChart"></canvas>
             </div>
             
